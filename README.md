@@ -3,526 +3,425 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análisis de Circuitos AC - Árbol de Habilidades RPG</title>
-    <!-- KaTeX CSS para renderizado matemático impecable -->
+    <title>Análisis de Circuitos AC - Árbol RPG</title>
+    <!-- KaTeX CSS & JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg-dark: #080c14;
-            --panel-bg: rgba(13, 20, 36, 0.85);
-            --cyan-glow: #00f3ff;
-            --magenta-glow: #ff0055;
-            --yellow-glow: #ffb700;
-            --green-glow: #00ff66;
+            --bg-dark: #070a12;
+            --panel-bg: #0d1424;
+            --panel-border: rgba(0, 243, 255, 0.3);
+            --cyan: #00f3ff;
+            --green: #00ff66;
+            --yellow: #ffb700;
+            --red: #ff0055;
             --text-main: #e2e8f0;
             --text-muted: #94a3b8;
-            --border-neon: rgba(0, 243, 255, 0.3);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
 
         body {
             background-color: var(--bg-dark);
             background-image: 
-                radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.05) 0%, transparent 80%),
+                radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.04) 0%, transparent 80%),
                 linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-            background-size: 100% 100%, 40px 40px, 40px 40px;
+            background-size: 100% 100%, 30px 30px, 30px 30px;
             color: var(--text-main);
             font-family: 'Rajdhani', sans-serif;
             min-height: 100vh;
-            overflow-x: hidden;
             display: flex;
             flex-direction: column;
         }
 
-        /* --- HEADER / HUD RPG --- */
+        /* --- HEADER RPG --- */
         header {
-            background: rgba(8, 12, 20, 0.95);
-            border-bottom: 2px solid var(--cyan-glow);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
-            padding: 15px 30px;
+            background: rgba(7, 10, 18, 0.95);
+            border-bottom: 2px solid var(--cyan);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+            padding: 12px 25px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 100;
-            backdrop-filter: blur(10px);
         }
 
         .hud-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             font-weight: 800;
             color: #fff;
-            text-shadow: 0 0 10px var(--cyan-glow);
-            letter-spacing: 2px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            text-shadow: 0 0 8px var(--cyan);
         }
 
-        .hud-stats {
+        .hud-stats { display: flex; gap: 20px; align-items: center; }
+        .stat-box { display: flex; flex-direction: column; align-items: flex-end; }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+        .stat-value { font-family: 'Orbitron', sans-serif; font-size: 1.1rem; color: var(--cyan); font-weight: 700; }
+        
+        .xp-container {
+            width: 140px; height: 10px;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid var(--cyan);
+            border-radius: 5px; overflow: hidden; margin-top: 3px;
+        }
+        .xp-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--cyan), var(--green)); transition: width 0.4s ease; }
+
+        /* --- MAIN TREE CONTAINER --- */
+        #tree-container {
+            max-width: 1100px;
+            width: 100%;
+            margin: 30px auto;
+            padding: 0 20px;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 25px;
         }
 
-        .stat-box {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .stat-value {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.2rem;
-            color: var(--cyan-glow);
-            font-weight: 700;
-        }
-
-        .xp-container {
-            width: 180px;
-            height: 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--cyan-glow);
-            border-radius: 6px;
-            overflow: hidden;
-            position: relative;
-            margin-top: 4px;
-        }
-
-        .xp-bar {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, var(--cyan-glow), var(--green-glow));
-            box-shadow: 0 0 10px var(--cyan-glow);
-            transition: width 0.5s ease;
-        }
-
-        /* --- TREE CANVAS CONTAINER --- */
-        #tree-container {
-            flex: 1;
-            position: relative;
-            width: 100%;
-            max-width: 1200px;
-            margin: 40px auto;
-            min-height: 650px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #connections-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .tree-grid {
-            position: relative;
-            z-index: 2;
-            width: 100%;
-            height: 100%;
-            display: grid;
-            grid-template-rows: repeat(3, 1fr);
-            gap: 60px;
-            padding: 20px;
-        }
-
-        .tree-tier {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-        }
-
-        /* --- SKILL NODES --- */
-        .skill-node {
-            width: 110px;
-            height: 110px;
+        .chapter-card {
             background: var(--panel-bg);
-            border: 2px solid var(--text-muted);
-            border-radius: 50%;
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        }
+
+        .chapter-header {
+            padding: 18px 25px;
+            background: rgba(0, 243, 255, 0.05);
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
-            text-align: center;
-            padding: 10px;
+            transition: background 0.2s;
         }
 
-        .skill-node::before {
-            content: '';
-            position: absolute;
-            top: -6px; left: -6px; right: -6px; bottom: -6px;
-            border-radius: 50%;
-            border: 1px dashed var(--text-muted);
-            transition: all 0.3s ease;
-        }
+        .chapter-header:hover { background: rgba(0, 243, 255, 0.1); }
 
-        .skill-node.unlocked {
-            border-color: var(--cyan-glow);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.4);
-            background: radial-gradient(circle, rgba(0, 243, 255, 0.15) 0%, var(--panel-bg) 70%);
-        }
-
-        .skill-node.unlocked::before {
-            border-color: var(--cyan-glow);
-            animation: spin 12s linear infinite;
-        }
-
-        .skill-node.completed {
-            border-color: var(--green-glow);
-            box-shadow: 0 0 25px rgba(0, 255, 102, 0.5);
-            background: radial-gradient(circle, rgba(0, 255, 102, 0.2) 0%, var(--panel-bg) 70%);
-        }
-
-        .skill-node.completed::before {
-            border-color: var(--green-glow);
-            border-style: solid;
-        }
-
-        .skill-node.locked {
-            opacity: 0.5;
-            filter: grayscale(1);
-            cursor: not-allowed;
-        }
-
-        .skill-node:hover:not(.locked) {
-            transform: scale(1.12);
-            box-shadow: 0 0 30px var(--cyan-glow);
-        }
-
-        .node-icon {
-            font-size: 2rem;
-            margin-bottom: 4px;
-        }
-
-        .node-title {
+        .chapter-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: 0.75rem;
-            font-weight: 700;
-            line-height: 1.1;
-            color: #fff;
-        }
-
-        .node-status {
-            position: absolute;
-            bottom: -8px;
-            background: #000;
-            border: 1px solid var(--cyan-glow);
-            border-radius: 10px;
-            padding: 2px 8px;
-            font-size: 0.65rem;
-            font-family: 'Orbitron', sans-serif;
-            color: var(--cyan-glow);
-        }
-
-        .completed .node-status {
-            border-color: var(--green-glow);
-            color: var(--green-glow);
-        }
-
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
-        }
-
-        /* --- MODAL DE MISION / CONTENIDO --- */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(4, 6, 12, 0.85);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
+            font-size: 1.1rem;
+            color: var(--cyan);
             display: flex;
-            justify-content: center;
             align-items: center;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
+            gap: 12px;
         }
 
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .modal-card {
-            background: var(--panel-bg);
-            border: 2px solid var(--cyan-glow);
-            border-radius: 12px;
-            box-shadow: 0 0 40px rgba(0, 243, 255, 0.3);
-            width: 90%;
-            max-width: 900px;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transform: scale(0.9);
+        .chapter-arrow {
+            font-size: 1.2rem;
+            color: var(--cyan);
             transition: transform 0.3s ease;
         }
 
-        .modal-overlay.active .modal-card {
-            transform: scale(1);
+        .chapter-card.open .chapter-arrow { transform: rotate(90deg); }
+
+        /* SUB-TREE / MISSIONS */
+        .sub-tree {
+            display: none;
+            padding: 20px 25px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            background: rgba(0,0,0,0.2);
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .chapter-card.open .sub-tree { display: grid; }
+
+        .mission-node {
+            background: rgba(13, 20, 36, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mission-node.unlocked { border-color: var(--cyan); }
+        .mission-node.unlocked:hover { transform: translateY(-2px); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
+        .mission-node.completed { border-color: var(--green); background: rgba(0, 255, 102, 0.05); }
+        .mission-node.locked { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
+
+        .mission-info { display: flex; align-items: center; gap: 12px; }
+        .mission-icon { font-size: 1.5rem; }
+        .mission-name { font-weight: 600; font-size: 0.95rem; color: #fff; }
+        .mission-tag { font-size: 0.7rem; font-family: 'Orbitron', sans-serif; padding: 2px 6px; border-radius: 4px; }
+        .unlocked .mission-tag { color: var(--cyan); border: 1px solid var(--cyan); }
+        .completed .mission-tag { color: var(--green); border: 1px solid var(--green); }
+        .locked .mission-tag { color: var(--text-muted); border: 1px solid var(--text-muted); }
+
+        /* --- MODAL DE MISION --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(4, 6, 12, 0.9);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.25s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+
+        .modal-card {
+            background: var(--panel-bg);
+            border: 2px solid var(--cyan);
+            border-radius: 12px;
+            width: 90%; max-width: 850px;
+            max-height: 90vh;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 243, 255, 0.25);
         }
 
         .modal-header {
-            padding: 20px 30px;
-            border-bottom: 1px solid var(--border-neon);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 15px 25px;
+            border-bottom: 1px solid var(--panel-border);
+            display: flex; justify-content: space-between; align-items: center;
             background: rgba(0, 243, 255, 0.05);
         }
+        .modal-header h3 { font-family: 'Orbitron', sans-serif; color: var(--cyan); font-size: 1.1rem; }
+        .close-btn { background: none; border: none; color: var(--text-muted); font-size: 1.8rem; cursor: pointer; }
+        .close-btn:hover { color: var(--red); }
 
-        .modal-header h2 {
-            font-family: 'Orbitron', sans-serif;
-            color: var(--cyan-glow);
-            font-size: 1.4rem;
-            letter-spacing: 1px;
+        .modal-body { padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+
+        /* STEP NAVIGATION (TEORIA -> SIMULADOR) */
+        .step-view { display: none; flex-direction: column; gap: 15px; }
+        .step-view.active { display: flex; }
+
+        .theory-box {
+            background: rgba(0, 0, 0, 0.4);
+            border-left: 3px solid var(--cyan);
+            padding: 15px; border-radius: 0 6px 6px 0;
+            font-size: 1rem; line-height: 1.5;
         }
 
-        .close-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            font-size: 2rem;
-            cursor: pointer;
-            transition: color 0.2s;
+        .math-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 12px 18px; border-radius: 6px;
+            display: flex; flex-direction: column; gap: 8px;
         }
+        .math-title { font-family: 'Orbitron', sans-serif; font-size: 0.8rem; color: var(--yellow); }
+        .math-eq { font-size: 1.1rem; padding: 4px 0; overflow-x: auto; }
 
-        .close-btn:hover {
-            color: var(--magenta-glow);
-        }
-
-        .modal-body {
-            padding: 30px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        /* ESTILO PARA FÓRMULAS Y PASOS MATEMÁTICOS */
-        .math-derivation-box {
-            background: rgba(0, 0, 0, 0.6);
-            border-left: 4px solid var(--cyan-glow);
-            padding: 20px;
-            border-radius: 0 8px 8px 0;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .math-step {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 12px 16px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .math-step-title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 0.85rem;
-            color: var(--yellow-glow);
-            margin-bottom: 6px;
-            text-transform: uppercase;
-        }
-
-        .math-equation {
-            font-size: 1.1rem;
-            padding: 8px 0;
-            color: #fff;
-            overflow-x: auto;
-        }
-
-        .sim-container {
+        /* SIMULATOR & LEGEND */
+        .sim-box {
             background: #000;
-            border: 1px solid var(--border-neon);
-            border-radius: 8px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
+            border: 1px solid var(--panel-border);
+            border-radius: 8px; padding: 15px;
+            display: flex; flex-direction: column; align-items: center; gap: 12px;
         }
 
-        canvas {
-            background: #050811;
-            border-radius: 4px;
-            border: 1px solid rgba(0, 243, 255, 0.2);
-            max-width: 100%;
-        }
+        canvas { background: #050811; border-radius: 4px; border: 1px solid rgba(0, 243, 255, 0.2); max-width: 100%; }
 
-        .controls-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            width: 100%;
+        .legend-box {
+            width: 100%; background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 6px; padding: 10px 15px;
+            font-size: 0.85rem; display: flex; flex-direction: column; gap: 6px;
         }
+        .legend-item { display: flex; align-items: center; gap: 8px; }
+        .legend-color { width: 12px; height: 12px; border-radius: 2px; }
 
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+        .controls-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; width: 100%; }
+        .control-group { display: flex; flex-direction: column; gap: 4px; }
+        .control-group label { font-size: 0.8rem; color: var(--text-muted); display: flex; justify-content: space-between; }
+        input[type="range"] { accent-color: var(--cyan); cursor: pointer; }
 
-        .control-group label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            display: flex;
-            justify-content: space-between;
-        }
-
-        input[type="range"] {
-            accent-color: var(--cyan-glow);
-            cursor: pointer;
-        }
-
-        .btn-action {
+        .nav-btn {
             font-family: 'Orbitron', sans-serif;
             background: linear-gradient(135deg, rgba(0,243,255,0.2), rgba(0,255,102,0.2));
-            border: 2px solid var(--cyan-glow);
-            color: #fff;
-            padding: 14px 28px;
-            border-radius: 6px;
-            font-size: 1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 15px rgba(0,243,255,0.2);
-            align-self: center;
-            margin-top: 10px;
+            border: 1px solid var(--cyan); color: #fff;
+            padding: 12px 24px; border-radius: 6px; font-size: 0.95rem; font-weight: 700;
+            cursor: pointer; transition: all 0.2s ease; align-self: flex-end;
+            display: flex; align-items: center; gap: 8px; margin-top: 10px;
         }
-
-        .btn-action:hover {
-            background: linear-gradient(135deg, var(--cyan-glow), var(--green-glow));
-            color: #000;
-            box-shadow: 0 0 25px var(--cyan-glow);
-            transform: translateY(-2px);
-        }
-
-        /* --- RESPONSIVE --- */
-        @media (max-width: 768px) {
-            header { flex-direction: column; gap: 10px; align-items: flex-start; }
-            .hud-stats { width: 100%; justify-content: space-between; }
-            .tree-grid { gap: 30px; }
-            .skill-node { width: 85px; height: 85px; }
-            .node-icon { font-size: 1.5rem; }
-            .node-title { font-size: 0.65rem; }
-        }
+        .nav-btn:hover { background: var(--cyan); color: #000; box-shadow: 0 0 15px var(--cyan); }
     </style>
 </head>
 <body>
 
-    <!-- HUD / BARRA SUPERIOR RPG -->
+    <!-- HEADER / HUD -->
     <header>
-        <div class="hud-title">
-            <span>⚡</span> CIRCUITY RPG: ANALISIS AC
-        </div>
+        <div class="hud-title">⚡ ANALISIS AC: RPG ACADEMY</div>
         <div class="hud-stats">
             <div class="stat-box">
-                <span class="stat-label">Rango Ingeniero</span>
+                <span class="stat-label">Rango</span>
                 <span class="stat-value" id="player-rank">Novato AC</span>
             </div>
             <div class="stat-box">
-                <span class="stat-label">Nivel / Experiencia</span>
+                <span class="stat-label">Progreso</span>
                 <span class="stat-value" id="player-lvl">Nivel 1</span>
-                <div class="xp-container">
-                    <div class="xp-bar" id="xp-bar"></div>
-                </div>
+                <div class="xp-container"><div class="xp-bar" id="xp-bar"></div></div>
             </div>
         </div>
     </header>
 
-    <!-- ÁRBOL DE HABILIDADES TIPO RPG -->
+    <!-- CONTAINER DE CAPÍTULOS Y SUB-ÁRBOLES -->
     <div id="tree-container">
-        <canvas id="connections-canvas"></canvas>
-        <div class="tree-grid">
-            
-            <!-- TIER 1: FUNDAMENTOS SENOIDALES -->
-            <div class="tree-tier">
-                <div class="skill-node unlocked" id="node-senoidal" onclick="openQuest('senoidal')">
-                    <div class="node-icon">🌊</div>
-                    <div class="node-title">Onda Senoidal & Fasores</div>
-                    <div class="node-status">DISPONIBLE</div>
+        
+        <!-- CAPÍTULO 1 -->
+        <div class="chapter-card open" id="chap-1">
+            <div class="chapter-header" onclick="toggleChapter('chap-1')">
+                <div class="chapter-title"><span>📘 CAPÍTULO 1:</span> Análisis Senoidal en Estado Estable</div>
+                <div class="chapter-arrow">▶</div>
+            </div>
+            <div class="sub-tree">
+                <div class="mission-node unlocked" id="node-senoidal" onclick="openQuest('senoidal')">
+                    <div class="mission-info">
+                        <span class="mission-icon">🌊</span>
+                        <div>
+                            <div class="mission-name">Onda Senoidal & Fasores</div>
+                            <span class="mission-tag">MISIÓN 1.1</span>
+                        </div>
+                    </div>
+                    <span>➔</span>
+                </div>
+                <div class="mission-node locked" id="node-impedancia" onclick="openQuest('impedancia')">
+                    <div class="mission-info">
+                        <span class="mission-icon">⚡</span>
+                        <div>
+                            <div class="mission-name">Impedancia & Resonancia RLC</div>
+                            <span class="mission-tag">MISIÓN 1.2</span>
+                        </div>
+                    </div>
+                    <span>➔</span>
                 </div>
             </div>
-
-            <!-- TIER 2: IMPEDANCIA Y POTENCIA -->
-            <div class="tree-tier">
-                <div class="skill-node locked" id="node-impedancia" onclick="openQuest('impedancia')">
-                    <div class="node-icon">⚡</div>
-                    <div class="node-title">Impedancia & RLC</div>
-                    <div class="node-status">BLOQUEADO</div>
-                </div>
-                <div class="skill-node locked" id="node-potencia" onclick="openQuest('potencia')">
-                    <div class="node-icon">💡</div>
-                    <div class="node-title">Potencia Compleja & FP</div>
-                    <div class="node-status">BLOQUEADO</div>
-                </div>
-            </div>
-
-            <!-- TIER 3: ACOPLAMIENTO Y TRIFÁSICOS -->
-            <div class="tree-tier">
-                <div class="skill-node locked" id="node-acoplamiento" onclick="openQuest('acoplamiento')">
-                    <div class="node-icon">🧲</div>
-                    <div class="node-title">Acoplamiento Magnético</div>
-                    <div class="node-status">BLOQUEADO</div>
-                </div>
-                <div class="skill-node locked" id="node-trifasicos" onclick="openQuest('trifasicos')">
-                    <div class="node-icon">🏢</div>
-                    <div class="node-title">Sistemas Trifásicos</div>
-                    <div class="node-status">BLOQUEADO</div>
-                </div>
-            </div>
-
         </div>
+
+        <!-- CAPÍTULO 2 -->
+        <div class="chapter-card" id="chap-2">
+            <div class="chapter-header" onclick="toggleChapter('chap-2')">
+                <div class="chapter-title"><span>💡 CAPÍTULO 2:</span> Potencia en Estado Estacionario</div>
+                <div class="chapter-arrow">▶</div>
+            </div>
+            <div class="sub-tree">
+                <div class="mission-node locked" id="node-potencia" onclick="openQuest('potencia')">
+                    <div class="mission-info">
+                        <span class="mission-icon">📐</span>
+                        <div>
+                            <div class="mission-name">Potencia Compleja & FP</div>
+                            <span class="mission-tag">MISIÓN 2.1</span>
+                        </div>
+                    </div>
+                    <span>➔</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CAPÍTULO 3 -->
+        <div class="chapter-card" id="chap-3">
+            <div class="chapter-header" onclick="toggleChapter('chap-3')">
+                <div class="chapter-title"><span>🧲 CAPÍTULO 3:</span> Circuitos Acoplados Magnéticamente</div>
+                <div class="chapter-arrow">▶</div>
+            </div>
+            <div class="sub-tree">
+                <div class="mission-node locked" id="node-acoplamiento" onclick="openQuest('acoplamiento')">
+                    <div class="mission-info">
+                        <span class="mission-icon">🔄</span>
+                        <div>
+                            <div class="mission-name">Inducción Mutua & Transformadores</div>
+                            <span class="mission-tag">MISIÓN 3.1</span>
+                        </div>
+                    </div>
+                    <span>➔</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CAPÍTULO 4 -->
+        <div class="chapter-card" id="chap-4">
+            <div class="chapter-header" onclick="toggleChapter('chap-4')">
+                <div class="chapter-title"><span>🏢 CAPÍTULO 4:</span> Sistemas Polifásicos</div>
+                <div class="chapter-arrow">▶</div>
+            </div>
+            <div class="sub-tree">
+                <div class="mission-node locked" id="node-trifasicos" onclick="openQuest('trifasicos')">
+                    <div class="mission-info">
+                        <span class="mission-icon">🌐</span>
+                        <div>
+                            <div class="mission-name">Sistemas Trifásicos Y / Δ</div>
+                            <span class="mission-tag">MISIÓN 4.1</span>
+                        </div>
+                    </div>
+                    <span>➔</span>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- MODAL INTERACTIVO DE MISIÓN -->
+    <!-- MODAL DE MISIÓN -->
     <div class="modal-overlay" id="quest-modal">
         <div class="modal-card">
             <div class="modal-header">
-                <h2 id="modal-title">Título de la Misión</h2>
+                <h3 id="modal-title">Título de Misión</h3>
                 <button class="close-btn" onclick="closeQuest()">&times;</button>
             </div>
-            <div class="modal-body" id="modal-body">
-                <!-- Se inyecta dinámicamente con explicaciones paso a paso y simuladores -->
+            <div class="modal-body">
+                
+                <!-- PASO 1: TEORÍA BREVE -->
+                <div class="step-view active" id="step-theory">
+                    <div class="theory-box" id="theory-text">
+                        <!-- Texto conciso -->
+                    </div>
+                    
+                    <div class="math-card">
+                        <div class="math-title">Fórmula Fundamental</div>
+                        <div class="math-eq" id="eq-1"></div>
+                    </div>
+
+                    <div class="math-card">
+                        <div class="math-title">Transformación / Resultado Final</div>
+                        <div class="math-eq" id="eq-2"></div>
+                    </div>
+
+                    <button class="nav-btn" onclick="switchStep('sim')">
+                        Continuar al Simulador ➔
+                    </button>
+                </div>
+
+                <!-- PASO 2: SIMULADOR INTERACTIVO -->
+                <div class="step-view" id="step-sim">
+                    <div class="sim-box">
+                        <canvas id="sim-canvas" width="650" height="230"></canvas>
+                        
+                        <!-- LEYENDA EXPLICATIVA DEL SIMULADOR -->
+                        <div class="legend-box" id="sim-legend">
+                            <!-- Leyenda inyectada por JS -->
+                        </div>
+
+                        <div class="controls-grid" id="sim-controls">
+                            <!-- Controles inyectados por JS -->
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; width: 100%;">
+                        <button class="nav-btn" style="background: rgba(255,255,255,0.1); border-color: var(--text-muted);" onclick="switchStep('theory')">
+                            ⬅ Volver a Teoría
+                        </button>
+                        <button class="nav-btn" id="btn-complete" onclick="completeCurrentQuest()">
+                            Completar Misión (+100 XP) ✔
+                        </button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
-    <!-- KaTeX JS para renderizar matemática -->
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
-
     <script>
-        /* --- ESTADO DEL JUGADOR Y PROGRESIÓN RPG --- */
+        /* --- ESTADO Y PROGRESO --- */
         const gameState = {
             xp: 0,
             level: 1,
@@ -532,227 +431,130 @@
 
         const ranks = ["Novato AC", "Analista de Fasores", "Maestro de Impedancias", "Soberano Trifásico"];
 
-        /* --- BASE DE DATOS DE HABILIDADES Y DESGLOSE MATEMÁTICO --- */
-        const questData = {
+        /* --- BASE DE DATOS DE MISIONES Y ECUACIONES --- */
+        const questDB = {
             senoidal: {
-                title: "Unidad 1: Onda Senoidal y Transformada Fasorial",
-                xpReward: 100,
-                unlocks: ['impedancia', 'potencia'],
-                content: `
-                    <p>En corriente alterna (AC), la tensión y la corriente varían en forma de onda senoidal a lo largo del tiempo. Para analizar estos circuitos sin resolver complejas ecuaciones diferenciales, transformamos el dominio del tiempo al <b>dominio de la frecuencia (Fasores)</b>.</p>
-
-                    <div class="math-derivation-box">
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 1: Señal Senoidal en el Tiempo</div>
-                            <p>Cualquier señal AC periódica se describe como:</p>
-                            <div class="math-equation">$$v(t) = V_m \cdot \cos(\omega t + \phi)$$</div>
-                            <small>Donde $V_m$ es la amplitud máxima, $\omega = 2\pi f$ es la frecuencia angular (rad/s) y $\phi$ es el desfase inicial.</small>
-                        </div>
-
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 2: Identidad de Euler (Fundamento Matemático)</div>
-                            <p>Según la fórmula de Euler, un número complejo exponencial se relaciona con senos y cosenos:</p>
-                            <div class="math-equation">$$e^{j\theta} = \cos(\theta) + j \cdot \sin(\theta)$$</div>
-                            <p>Por lo tanto, la parte real es: $\cos(\theta) = \text{Re}\{e^{j\theta}\}$.</p>
-                        </div>
-
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 3: Transformación al Fasor</div>
-                            <p>Escribimos $v(t) = \text{Re}\{V_m e^{j(\omega t + \phi)}\} = \text{Re}\{V_m e^{j\phi} e^{j\omega t}\}$. Al aislar la parte estática independiente del tiempo, obtenemos el **Fasor** ($\mathbf{V}$):</p>
-                            <div class="math-equation">$$\mathbf{V} = V_{rms} \angle \phi = \frac{V_m}{\sqrt{2}} e^{j\phi}$$</div>
-                        </div>
+                title: "Unidad 1: Onda Senoidal y Fasores",
+                reward: 100,
+                next: ['impedancia'],
+                theory: "Las señales senoidales cambian continuamente en el tiempo. Para simplificar su análisis sin resolver ecuaciones diferenciales, las convertimos a <b>Fasores</b> (vectores en el plano complejo con amplitud y ángulo).",
+                eq1: "v(t) = V_m \\cdot \\cos(\\omega t + \\phi)",
+                eq2: "\\mathbf{V} = V_{rms} \\angle \\phi = \\frac{V_m}{\\sqrt{2}} e^{j\\phi}",
+                legend: `
+                    <div class="legend-item"><div class="legend-color" style="background:#ff0055;"></div> <b>Línea Roja (Fasor V):</b> Vector giratorio en el plano complejo ($Re$, $Im$) con magnitud $V_m$ y ángulo $\\phi$.</div>
+                    <div class="legend-item"><div class="legend-color" style="background:#ffb700;"></div> <b>Línea Punteada (Proyección):</b> Muestra la altura vertical instantánea transmitida hacia la onda temporal.</div>
+                    <div class="legend-item"><div class="legend-color" style="background:#00f3ff;"></div> <b>Línea Azul (Osciloscopio):</b> La forma de onda $v(t)$ generada al transcurrir el tiempo.</div>
+                `,
+                controls: `
+                    <div class="control-group">
+                        <label>Amplitud $V_m$ (V): <span id="val-vm">100</span></label>
+                        <input type="range" id="input-vm" min="30" max="150" value="100" oninput="drawSimSenoidal()">
                     </div>
-
-                    <h3>Simulador Interactivo: Generador de Onda y Vector Fasorial</h3>
-                    <div class="sim-container">
-                        <canvas id="sim-canvas" width="600" height="220"></canvas>
-                        <div class="controls-grid">
-                            <div class="control-group">
-                                <label>Amplitud $V_m$ (V): <span id="val-vm">100</span></label>
-                                <input type="range" id="input-vm" min="20" max="150" value="100" oninput="updateSimSenoidal()">
-                            </div>
-                            <div class="control-group">
-                                <label>Desfase $\phi$ (grados): <span id="val-phi">45</span>°</label>
-                                <input type="range" id="input-phi" min="-180" max="180" value="45" oninput="updateSimSenoidal()">
-                            </div>
-                        </div>
+                    <div class="control-group">
+                        <label>Desfase $\\phi$ (grados): <span id="val-phi">45</span>°</label>
+                        <input type="range" id="input-phi" min="-180" max="180" value="45" oninput="drawSimSenoidal()">
                     </div>
-                `
+                `,
+                initSim: () => drawSimSenoidal()
             },
             impedancia: {
-                title: "Unidad 1.2: Impedancia Compleja y Resonancia RLC",
-                xpReward: 150,
-                unlocks: ['acoplamiento'],
-                content: `
-                    <p>La **Impedancia ($Z$)** es la oposición total al flujo de corriente alterna en un circuito pasivo RLC. Es un número complejo compuesto por una parte real (Resistencia $R$) y una parte imaginaria (Reactancia $X$).</p>
-
-                    <div class="math-derivation-box">
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 1: Ley de Ohm Básica en AC</div>
-                            <div class="math-equation">$$\mathbf{V} = \mathbf{I} \cdot \mathbf{Z} \implies \mathbf{Z} = \frac{\mathbf{V}}{\mathbf{I}}$$</div>
-                        </div>
-
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 2: Comportamiento de cada elemento pasivo</div>
-                            <p>• Resistor: $Z_R = R$ (Sin desfase)<br>
-                               • Inductancia: $Z_L = j\omega L$ (La corriente se atrasa $90^\circ$)<br>
-                               • Capacitancia: $Z_C = \frac{1}{j\omega C} = -j \frac{1}{\omega C}$ (La corriente se adelanta $90^\circ$)</p>
-                        </div>
-
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 3: Impedancia Total RLC Serie</div>
-                            <div class="math-equation">$$\mathbf{Z}_{total} = R + j\left(\omega L - \frac{1}{\omega C}\right) = R + j(X_L - X_C)$$</div>
-                        </div>
-
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 4: Deducción de la Frecuencia de Resonancia ($f_0$)</div>
-                            <p>En resonancia, las reactancias se cancelan ($X_L = X_C$), haciendo que la impedancia sea puramente resistiva y mínima:</p>
-                            <div class="math-equation">$$\omega_0 L = \frac{1}{\omega_0 C} \implies \omega_0^2 = \frac{1}{LC} \implies f_0 = \frac{1}{2\pi \sqrt{LC}}$$</div>
-                        </div>
+                title: "Unidad 1.2: Impedancia y Resonancia RLC",
+                reward: 150,
+                next: ['potencia'],
+                theory: "La <b>Impedancia ($Z$)</b> representa la oposición al paso de corriente alterna. En un circuito RLC, existe una frecuencia especial de <b>Resonancia ($f_0$)</b> donde las reactancias inductiva ($X_L$) y capacitiva ($X_C$) se cancelan mutuamente.",
+                eq1: "\\mathbf{Z} = R + j(X_L - X_C) = R + j\\left(\\omega L - \\frac{1}{\\omega C}\\right)",
+                eq2: "f_0 = \\frac{1}{2\\pi \\sqrt{L C}} \\quad (\\text{cuando } X_L = X_C)",
+                legend: `
+                    <div class="legend-item"><div class="legend-color" style="background:#00ff66;"></div> <b>Curva Verde (|Z|):</b> Magnitud de la impedancia total según la frecuencia.</div>
+                    <div class="legend-item"><div class="legend-color" style="background:#ffb700;"></div> <b>Línea Amarilla (f0):</b> Frecuencia exacta de resonancia donde la impedancia es mínima ($|Z| = R$).</div>
+                `,
+                controls: `
+                    <div class="control-group">
+                        <label>Inductancia L (mH): <span id="val-l">10</span></label>
+                        <input type="range" id="input-l" min="1" max="50" value="10" oninput="drawSimRLC()">
                     </div>
-
-                    <h3>Simulador: Curva de Impedancia vs Frecuencia</h3>
-                    <div class="sim-container">
-                        <canvas id="sim-canvas" width="600" height="220"></canvas>
-                        <div class="controls-grid">
-                            <div class="control-group">
-                                <label>Inductancia $L$ (mH): <span id="val-l">10</span></label>
-                                <input type="range" id="input-l" min="1" max="50" value="10" oninput="updateSimRLC()">
-                            </div>
-                            <div class="control-group">
-                                <label>Capacitancia $C$ ($\mu$F): <span id="val-c">10</span></label>
-                                <input type="range" id="input-c" min="1" max="50" value="10" oninput="updateSimRLC()">
-                            </div>
-                        </div>
+                    <div class="control-group">
+                        <label>Capacitancia C (µF): <span id="val-c">10</span></label>
+                        <input type="range" id="input-c" min="1" max="50" value="10" oninput="drawSimRLC()">
                     </div>
-                `
+                `,
+                initSim: () => drawSimRLC()
             },
             potencia: {
                 title: "Unidad 2: Potencia Compleja y Factor de Potencia",
-                xpReward: 150,
-                unlocks: ['trifasicos'],
-                content: `
-                    <p>En AC, la potencia no es solo el producto de Tensión y Corriente. Debido al desfase introducido por cargas inductivas o capacitivas, la potencia se divide en **Activa** (trabajo útil) y **Reactiva** (energía oscilante en campos magnéticos/eléctricos).</p>
-
-                    <div class="math-derivation-box">
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 1: Ecuación de Potencia Compleja ($\mathbf{S}$)</div>
-                            <div class="math-equation">$$\mathbf{S} = \mathbf{V} \cdot \mathbf{I}^* = P + jQ$$</div>
-                            <small>Donde $\mathbf{I}^*$ es el conjugado complejo de la corriente.</small>
-                        </div>
-
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 2: Componentes del Triángulo de Potencia</div>
-                            <p>• **Potencia Activa ($P$):** $P = S \cdot \cos(\theta)$ [Watts, W]<br>
-                               • **Potencia Reactiva ($Q$):** $Q = S \cdot \sin(\theta)$ [VAR]<br>
-                               • **Potencia Aparente ($S$):** $S = |\mathbf{S}| = \sqrt{P^2 + Q^2}$ [VA]</p>
-                        </div>
-
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 3: Factor de Potencia ($FP$) y Corrección</div>
-                            <div class="math-equation">$$FP = \cos(\theta) = \frac{P}{S}$$</div>
-                            <p>Un $FP < 0.95$ acarrea penalizaciones industriales. Para corregirlo, añadimos un banco de condensadores con potencia reactiva $Q_C$:</p>
-                            <div class="math-equation">$$Q_C = P \cdot \left(\tan(\theta_1) - \tan(\theta_2)\right) \implies C = \frac{Q_C}{\omega V_{rms}^2}$$</div>
-                        </div>
+                reward: 150,
+                next: ['acoplamiento'],
+                theory: "En AC, la energía se divide en <b>Potencia Activa ($P$)</b> (trabajo real) y <b>Potencia Reactiva ($Q$)</b> (campo magnético/eléctrico). El <b>Factor de Potencia ($FP$)</b> mide la eficiencia del sistema y se corrige inyectando capacitores.",
+                eq1: "\\mathbf{S} = P + jQ = \\mathbf{V}_{rms} \\mathbf{I}_{rms}^*",
+                eq2: "FP = \\cos(\\theta) = \\frac{P}{|S|}",
+                legend: `
+                    <div class="legend-item"><div class="legend-color" style="background:#00f3ff;"></div> <b>Línea Azul (P):</b> Potencia Activa Útil (Watts).</div>
+                    <div class="legend-item"><div class="legend-color" style="background:#ff0055;"></div> <b>Línea Roja (Q):</b> Potencia Reactiva Neta $Q_L - Q_C$ (VAR).</div>
+                    <div class="legend-item"><div class="legend-color" style="background:#00ff66;"></div> <b>Línea Verde (S):</b> Potencia Aparente Total (VA).</div>
+                `,
+                controls: `
+                    <div class="control-group">
+                        <label>Carga Inductiva QL (VAR): <span id="val-ql">300</span></label>
+                        <input type="range" id="input-ql" min="50" max="500" value="300" oninput="drawSimPotencia()">
                     </div>
-
-                    <h3>Simulador: Triángulo de Potencias e Inyección Capacitiva</h3>
-                    <div class="sim-container">
-                        <canvas id="sim-canvas" width="600" height="220"></canvas>
-                        <div class="controls-grid">
-                            <div class="control-group">
-                                <label>Carga Inductiva $Q_L$ (VAR): <span id="val-ql">300</span></label>
-                                <input type="range" id="input-ql" min="50" max="500" value="300" oninput="updateSimPotencia()">
-                            </div>
-                            <div class="control-group">
-                                <label>Compensación Capacitiva $Q_C$: <span id="val-qc">100</span></label>
-                                <input type="range" id="input-qc" min="0" max="500" value="100" oninput="updateSimPotencia()">
-                            </div>
-                        </div>
+                    <div class="control-group">
+                        <label>Capacitor Compensador QC: <span id="val-qc">150</span></label>
+                        <input type="range" id="input-qc" min="0" max="500" value="150" oninput="drawSimPotencia()">
                     </div>
-                `
+                `,
+                initSim: () => drawSimPotencia()
             },
             acoplamiento: {
-                title: "Unidad 3: Acoplamiento Magnético y Transformadores",
-                xpReward: 200,
-                unlocks: [],
-                content: `
-                    <p>Cuando dos bobinas están próximas, el flujo magnético generado por una induce una tensión en la otra. Este fenómeno se rige por la **Inductancia Mutua ($M$)** y es la base de los transformadores.</p>
-
-                    <div class="math-derivation-box">
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 1: Ley de Faraday e Inductancia Mutua</div>
-                            <div class="math-equation">$$v_1(t) = L_1 \frac{di_1}{dt} \pm M \frac{di_2}{dt}$$</div>
-                            <div class="math-equation">$$v_2(t) = L_2 \frac{di_2}{dt} \pm M \frac{di_1}{dt}$$</div>
-                            <small>El valor máximo de inductancia mutua es $M = k \sqrt{L_1 L_2}$, donde $k$ es el coeficiente de acoplamiento ($0 \le k \le 1$).</small>
-                        </div>
-
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 2: Relación de Transformación Ideal</div>
-                            <p>En un transformador ideal sin pérdidas ($k = 1$):</p>
-                            <div class="math-equation">$$a = \frac{N_1}{N_2} = \frac{\mathbf{V}_1}{\mathbf{V}_2} = \frac{\mathbf{I}_2}{\mathbf{I}_1}$$</div>
-                        </div>
+                title: "Unidad 3: Inducción Mutua y Transformadores",
+                reward: 200,
+                next: ['trifasicos'],
+                theory: "El flujo magnético variable de una bobina puede inducir tensión en una bobina cercana por <b>Inductancia Mutua ($M$)</b>. Un transformador altera el voltaje según la razón de espiras ($a = N_1/N_2$).",
+                eq1: "v_2(t) = M \\frac{di_1(t)}{dt}",
+                eq2: "a = \\frac{N_1}{N_2} = \\frac{V_1}{V_2}",
+                legend: `
+                    <div class="legend-item"><div class="legend-color" style="background:#ffb700;"></div> <b>Primario (N1):</b> Bobinado alimentado con voltaje de entrada $V_1$.</div>
+                    <div class="legend-item"><div class="legend-color" style="background:#00f3ff;"></div> <b>Secundario (N2):</b> Voltaje inducido de salida $V_2$ según la relación de transformación.</div>
+                `,
+                controls: `
+                    <div class="control-group">
+                        <label>Vueltas Primario (N1): <span id="val-n1">500</span></label>
+                        <input type="range" id="input-n1" min="100" max="1000" value="500" oninput="drawSimTransfo()">
                     </div>
-
-                    <h3>Simulador: Transformador de Aislamiento y Muestreo de Tensión</h3>
-                    <div class="sim-container">
-                        <canvas id="sim-canvas" width="600" height="200"></canvas>
-                        <div class="controls-grid">
-                            <div class="control-group">
-                                <label>Vueltas Primario ($N_1$): <span id="val-n1">500</span></label>
-                                <input type="range" id="input-n1" min="100" max="1000" value="500" oninput="updateSimTransfo()">
-                            </div>
-                            <div class="control-group">
-                                <label>Vueltas Secundario ($N_2$): <span id="val-n2">250</span></label>
-                                <input type="range" id="input-n2" min="50" max="1000" value="250" oninput="updateSimTransfo()">
-                            </div>
-                        </div>
+                    <div class="control-group">
+                        <label>Vueltas Secundario (N2): <span id="val-n2">250</span></label>
+                        <input type="range" id="input-n2" min="50" max="1000" value="250" oninput="drawSimTransfo()">
                     </div>
-                `
+                `,
+                initSim: () => drawSimTransfo()
             },
             trifasicos: {
-                title: "Unidad 4: Sistemas Trifásicos (Estrella Y y Delta Δ)",
-                xpReward: 200,
-                unlocks: [],
-                content: `
-                    <p>La generación y distribución industrial de energía eléctrica se realiza mediante sistemas trifásicos equilibrados con tres corrientes alternas desfasadas $120^\circ$ entre sí.</p>
-
-                    <div class="math-derivation-box">
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 1: Fasores de Fase Equilibrados</div>
-                            <div class="math-equation">$$\mathbf{V}_{aN} = V_p \angle 0^\circ, \quad \mathbf{V}_{bN} = V_p \angle -120^\circ, \quad \mathbf{V}_{cN} = V_p \angle 120^\circ$$</div>
-                        </div>
-
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 2: Relación en Conexión Estrella (Y)</div>
-                            <p>La tensión entre dos líneas ($\mathbf{V}_{ab} = \mathbf{V}_{aN} - \mathbf{V}_{bN}$) guarda una relación de $\sqrt{3}$ con la tensión de fase:</p>
-                            <div class="math-equation">$$V_{linea} = \sqrt{3} \cdot V_{fase} \approx 1.732 \cdot V_{fase}$$</div>
-                        </div>
-
-                        <div class="math-step">
-                            <div class="math-step-title">Paso 3: Potencia Trifásica Total</div>
-                            <div class="math-equation">$$P_{total} = \sqrt{3} \cdot V_L \cdot I_L \cdot \cos(\theta)$$</div>
-                        </div>
+                title: "Unidad 4: Sistemas Trifásicos (Estrella Y / Delta Δ)",
+                reward: 200,
+                next: [],
+                theory: "Los sistemas trifásicos usan tres tensiones senoidales desfasadas $120^\\circ$. En conexión Estrella (Y), la tensión entre dos líneas ($V_L$) es $\\sqrt{3}$ veces mayor que la tensión de fase ($V_P$).",
+                eq1: "\\mathbf{V}_{aN} = V_P \\angle 0^\\circ, \\quad \\mathbf{V}_{bN} = V_P \\angle -120^\\circ, \\quad \\mathbf{V}_{cN} = V_P \\angle 120^\\circ",
+                eq2: "V_{linea} = \\sqrt{3} \\cdot V_{fase} \\approx 1.732 \\cdot V_P",
+                legend: `
+                    <div class="legend-item"><div class="legend-color" style="background:#ff0055;"></div> <b>Fase A ($0^\circ$)</b> | <div class="legend-color" style="background:#00f3ff;"></div> <b>Fase B ($-120^\circ$)</b> | <div class="legend-color" style="background:#00ff66;"></div> <b>Fase C ($120^\circ$)</b></div>
+                `,
+                controls: `
+                    <div class="control-group">
+                        <label>Tensión de Fase Vp (V): <span id="val-vp">120</span></label>
+                        <input type="range" id="input-vp" min="50" max="240" value="120" oninput="drawSimTrifasico()">
                     </div>
-
-                    <h3>Simulador: Diagrama Fasorial Trifásico</h3>
-                    <div class="sim-container">
-                        <canvas id="sim-canvas" width="600" height="240"></canvas>
-                        <div class="controls-grid">
-                            <div class="control-group">
-                                <label>Tensión de Fase $V_p$ (V): <span id="val-vp">120</span></label>
-                                <input type="range" id="input-vp" min="50" max="240" value="120" oninput="updateSimTrifasico()">
-                            </div>
-                        </div>
-                    </div>
-                `
+                `,
+                initSim: () => drawSimTrifasico()
             }
         };
 
-        /* --- MANEJO DEL SISTEMA Y EVENTOS --- */
-        let currentActiveQuest = null;
+        let activeQuestKey = null;
 
-        function updateHUD() {
+        /* --- CONTROL DE CAPÍTULOS Y DESPLEGABLES --- */
+        function toggleChapter(id) {
+            document.getElementById(id).classList.toggle('open');
+        }
+
+        function updateUI() {
             document.getElementById('player-lvl').innerText = `Nivel ${gameState.level}`;
             document.getElementById('player-rank').innerText = ranks[Math.min(gameState.level - 1, ranks.length - 1)];
             
@@ -760,143 +562,102 @@
             const pct = Math.min((gameState.xp / xpMax) * 100, 100);
             document.getElementById('xp-bar').style.width = `${pct}%`;
 
-            // Actualizar estado visual de los nodos
-            Object.keys(questData).forEach(key => {
+            Object.keys(questDB).forEach(key => {
                 const node = document.getElementById(`node-${key}`);
                 if (!node) return;
 
+                const tag = node.querySelector('.mission-tag');
                 if (gameState.completedNodes.includes(key)) {
-                    node.className = "skill-node completed";
-                    node.querySelector('.node-status').innerText = "COMPLETADO";
+                    node.className = "mission-node completed";
+                    tag.innerText = "COMPLETADO ✔";
                 } else if (gameState.unlockedNodes.includes(key)) {
-                    node.className = "skill-node unlocked";
-                    node.querySelector('.node-status').innerText = "DISPONIBLE";
+                    node.className = "mission-node unlocked";
+                    tag.innerText = "DISPONIBLE";
                 } else {
-                    node.className = "skill-node locked";
-                    node.querySelector('.node-status').innerText = "BLOQUEADO";
+                    node.className = "mission-node locked";
+                    tag.innerText = "BLOQUEADO 🔒";
                 }
             });
-
-            drawConnections();
         }
 
+        /* --- ABRIR Y NAVEGAR MISIÓN --- */
         function openQuest(key) {
             if (!gameState.unlockedNodes.includes(key)) return;
-
-            currentActiveQuest = key;
-            const data = questData[key];
             
-            const modal = document.getElementById('quest-modal');
+            activeQuestKey = key;
+            const data = questDB[key];
+
             document.getElementById('modal-title').innerText = data.title;
+            document.getElementById('theory-text').innerHTML = `<p>${data.theory}</p>`;
             
-            const isCompleted = gameState.completedNodes.includes(key);
-            const btnText = isCompleted ? "Misión Ya Completada" : `Completar Misión (+${data.xpReward} XP)`;
-            
-            document.getElementById('modal-body').innerHTML = `
-                ${data.content}
-                <button class="btn-action" onclick="completeQuest('${key}')">${btnText}</button>
-            `;
+            // Render de fórmulas KaTeX limpias de error
+            katex.render(data.eq1, document.getElementById('eq-1'), { displayMode: true, throwOnError: false });
+            katex.render(data.eq2, document.getElementById('eq-2'), { displayMode: true, throwOnError: false });
 
-            modal.classList.add('active');
+            // Cargar controles y leyenda
+            document.getElementById('sim-legend').innerHTML = data.legend;
+            document.getElementById('sim-controls').innerHTML = data.controls;
 
-            // Renderizar matemática limpia con KaTeX
-            renderMathInElement(document.getElementById('modal-body'), {
-                delimiters: [
-                    {left: '$$', right: '$$', display: true},
-                    {left: '$', right: '$', display: false}
-                ],
-                throwOnError : false
-            });
+            // Reset a paso teoría
+            switchStep('theory');
 
-            // Inicializar simuladores
-            setTimeout(() => {
-                if (key === 'senoidal') updateSimSenoidal();
-                if (key === 'impedancia') updateSimRLC();
-                if (key === 'potencia') updateSimPotencia();
-                if (key === 'acoplamiento') updateSimTransfo();
-                if (key === 'trifasicos') updateSimTrifasico();
-            }, 50);
+            document.getElementById('quest-modal').classList.add('active');
+        }
+
+        function switchStep(step) {
+            document.getElementById('step-theory').classList.remove('active');
+            document.getElementById('step-sim').classList.remove('active');
+
+            if (step === 'theory') {
+                document.getElementById('step-theory').classList.add('active');
+            } else {
+                document.getElementById('step-sim').classList.add('active');
+                setTimeout(() => {
+                    questDB[activeQuestKey].initSim();
+                    renderMathInLegend();
+                }, 50);
+            }
+        }
+
+        function renderMathInLegend() {
+            // Renderizar notación KaTeX en leyendas o controles si existen
+            const legendEl = document.getElementById('sim-legend');
+            if (window.renderMathInElement && legendEl) {
+                renderMathInElement(legendEl, {
+                    delimiters: [{left: '$', right: '$', display: false}],
+                    throwOnError: false
+                });
+            }
         }
 
         function closeQuest() {
             document.getElementById('quest-modal').classList.remove('active');
-            currentActiveQuest = null;
+            activeQuestKey = null;
         }
 
-        function completeQuest(key) {
-            if (!gameState.completedNodes.includes(key)) {
-                gameState.completedNodes.push(key);
-                const data = questData[key];
-                
-                // Desbloquear siguientes nodos
-                data.unlocks.forEach(u => {
-                    if (!gameState.unlockedNodes.includes(u)) {
-                        gameState.unlockedNodes.push(u);
-                    }
+        function completeCurrentQuest() {
+            if (activeQuestKey && !gameState.completedNodes.includes(activeQuestKey)) {
+                gameState.completedNodes.push(activeQuestKey);
+                const data = questDB[activeQuestKey];
+
+                data.next.forEach(n => {
+                    if (!gameState.unlockedNodes.includes(n)) gameState.unlockedNodes.push(n);
                 });
 
-                // Sumar Experiencia y calcular Nivel
-                gameState.xp += data.xpReward;
-                if (gameState.xp >= gameState.level * 200) {
-                    gameState.level++;
-                }
+                gameState.xp += data.reward;
+                if (gameState.xp >= gameState.level * 200) gameState.level++;
 
-                updateHUD();
+                updateUI();
             }
             closeQuest();
         }
 
-        /* --- DIBUJO DE LÍNEAS ENTRE NODOS (CANVAS BACKGROUND) --- */
-        function drawConnections() {
-            const canvas = document.getElementById('connections-canvas');
-            const ctx = canvas.getContext('2d');
-            
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        /* =========================================================
+           SIMULADORES INTERACTIVOS (CORREGIDOS Y CLAROS)
+           ========================================================= */
 
-            const connections = [
-                { from: 'senoidal', to: 'impedancia' },
-                { from: 'senoidal', to: 'potencia' },
-                { from: 'impedancia', to: 'acoplamiento' },
-                { from: 'potencia', to: 'trifasicos' }
-            ];
-
-            connections.forEach(conn => {
-                const elFrom = document.getElementById(`node-${conn.from}`);
-                const elTo = document.getElementById(`node-${conn.to}`);
-                if (!elFrom || !elTo) return;
-
-                const rectA = elFrom.getBoundingClientRect();
-                const rectB = elTo.getBoundingClientRect();
-                const containerRect = document.getElementById('tree-container').getBoundingClientRect();
-
-                const x1 = rectA.left + rectA.width/2 - containerRect.left;
-                const y1 = rectA.top + rectA.height/2 - containerRect.top;
-                const x2 = rectB.left + rectB.width/2 - containerRect.left;
-                const y2 = rectB.top + rectB.height/2 - containerRect.top;
-
-                const isUnlocked = gameState.unlockedNodes.includes(conn.to);
-
-                ctx.beginPath();
-                ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y2);
-                ctx.strokeStyle = isUnlocked ? '#00f3ff' : 'rgba(255, 255, 255, 0.1)';
-                ctx.lineWidth = isUnlocked ? 3 : 1;
-                if (isUnlocked) {
-                    ctx.shadowColor = '#00f3ff';
-                    ctx.shadowBlur = 10;
-                } else {
-                    ctx.shadowBlur = 0;
-                }
-                ctx.stroke();
-            });
-        }
-
-        /* --- LÓGICA DE SIMULADORES GRÁFICOS (CANVAS) --- */
-
-        // 1. SIMULADOR ONDA SENOIDAL
-        function updateSimSenoidal() {
+        // 1. SIMULADOR: ONDA SENOIDAL Y FASOR (PROYECCIÓN CORREGIDA)
+        function drawSimSenoidal() {
             const Vm = parseFloat(document.getElementById('input-vm').value);
             const phiDeg = parseFloat(document.getElementById('input-phi').value);
             document.getElementById('val-vm').innerText = Vm;
@@ -907,40 +668,56 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Ejes del Osciloscopio
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.beginPath();
-            ctx.moveTo(0, 110); ctx.lineTo(600, 110);
-            ctx.moveTo(150, 0); ctx.lineTo(150, 220);
-            ctx.stroke();
-
-            // Dibujar Fasor (Izquierda)
+            const cy = 115;
+            const cxPhasor = 120;
             const phiRad = (phiDeg * Math.PI) / 180;
-            const r = Vm * 0.6;
-            const fx = 150 + r * Math.cos(-phiRad);
-            const fy = 110 + r * Math.sin(-phiRad);
+            const r = Vm * 0.65;
 
-            ctx.strokeStyle = '#ff0055';
-            ctx.lineWidth = 3;
+            // Plano Complejo (Izquierda)
+            ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 1;
             ctx.beginPath();
-            ctx.moveTo(150, 110);
-            ctx.lineTo(fx, fy);
+            ctx.moveTo(20, cy); ctx.lineTo(220, cy); // Eje Real
+            ctx.moveTo(cxPhasor, 15); ctx.lineTo(cxPhasor, 215); // Eje Imag
             ctx.stroke();
 
-            // Dibujar Onda Senoidal (Derecha)
-            ctx.strokeStyle = '#00f3ff';
+            // Círculo de Amplitud Max
+            ctx.strokeStyle = 'rgba(0,243,255,0.1)';
+            ctx.beginPath(); ctx.arc(cxPhasor, cy, r, 0, Math.PI * 2); ctx.stroke();
+
+            // Vector Fasor (Línea Roja)
+            const fx = cxPhasor + r * Math.cos(-phiRad);
+            const fy = cy + r * Math.sin(-phiRad);
+
+            ctx.strokeStyle = '#ff0055'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(cxPhasor, cy); ctx.lineTo(fx, fy); ctx.stroke();
+
+            // Punta de flecha del fasor
+            ctx.fillStyle = '#ff0055';
+            ctx.beginPath(); ctx.arc(fx, fy, 4, 0, Math.PI * 2); ctx.fill();
+
+            // Línea de Proyección Punteada (Amarilla) desde el fasor a la onda senoidal
+            ctx.strokeStyle = '#ffb700'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+            ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(260, fy); ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Ejes de Osciloscopio (Derecha)
+            ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+            ctx.beginPath(); ctx.moveTo(260, cy); ctx.lineTo(630, cy); ctx.stroke();
+
+            // Onda Senoidal (Azul)
+            ctx.strokeStyle = '#00f3ff'; ctx.lineWidth = 2.5;
             ctx.beginPath();
-            for (let x = 150; x < 600; x++) {
-                const t = (x - 150) * 0.02;
-                const y = 110 - (Vm * 0.6) * Math.sin(t + phiRad);
-                if (x === 150) ctx.moveTo(x, y);
+            for (let x = 260; x <= 630; x++) {
+                const t = (x - 260) * 0.02;
+                const y = cy - r * Math.sin(t + phiRad);
+                if (x === 260) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
             ctx.stroke();
         }
 
-        // 2. SIMULADOR RESONANCIA RLC
-        function updateSimRLC() {
+        // 2. SIMULADOR: RESONANCIA RLC
+        function drawSimRLC() {
             const L = parseFloat(document.getElementById('input-l').value) * 1e-3;
             const C = parseFloat(document.getElementById('input-c').value) * 1e-6;
             document.getElementById('val-l').innerText = document.getElementById('input-l').value;
@@ -953,39 +730,36 @@
 
             const f0 = 1 / (2 * Math.PI * Math.sqrt(L * C));
 
-            // Dibujar Curva de Impedancia |Z| vs f
-            ctx.strokeStyle = '#00ff66';
-            ctx.lineWidth = 2;
+            // Curva de Impedancia
+            ctx.strokeStyle = '#00ff66'; ctx.lineWidth = 2.5;
             ctx.beginPath();
-            for (let x = 0; x < 600; x++) {
-                const f = x * 5; // Rango de 0 a 3000 Hz
+            for (let x = 40; x < 610; x++) {
+                const f = (x - 40) * 5;
                 const w = 2 * Math.PI * f;
                 const Xl = w * L;
                 const Xc = w > 0 ? 1 / (w * C) : 1000;
-                const Z = Math.sqrt(10*10 + Math.pow(Xl - Xc, 2));
+                const Z = Math.sqrt(15*15 + Math.pow(Xl - Xc, 2));
 
-                const y = 200 - Math.min(Z * 1.5, 180);
-                if (x === 0) ctx.moveTo(x, y);
+                const y = 200 - Math.min(Z * 1.2, 180);
+                if (x === 40) ctx.moveTo(x, y);
                 else ctx.lineTo(x, y);
             }
             ctx.stroke();
 
-            // Marca de Frecuencia de Resonancia
-            const xRes = f0 / 5;
-            ctx.strokeStyle = '#ffb700';
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.moveTo(xRes, 0); ctx.lineTo(xRes, 220);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            // Marca Resonancia f0
+            const xRes = 40 + (f0 / 5);
+            if (xRes >= 40 && xRes <= 610) {
+                ctx.strokeStyle = '#ffb700'; ctx.setLineDash([4, 4]);
+                ctx.beginPath(); ctx.moveTo(xRes, 10); ctx.lineTo(xRes, 210); ctx.stroke();
+                ctx.setLineDash([]);
 
-            ctx.fillStyle = '#ffb700';
-            ctx.font = '12px Orbitron';
-            ctx.fillText(`Resonancia f0 = ${Math.round(f0)} Hz`, Math.min(xRes + 10, 420), 30);
+                ctx.fillStyle = '#ffb700'; ctx.font = '12px Orbitron';
+                ctx.fillText(`f0 = ${Math.round(f0)} Hz`, Math.min(xRes + 8, 500), 30);
+            }
         }
 
-        // 3. SIMULADOR POTENCIA
-        function updateSimPotencia() {
+        // 3. SIMULADOR: TRIÁNGULO DE POTENCIAS
+        function drawSimPotencia() {
             const QL = parseFloat(document.getElementById('input-ql').value);
             const QC = parseFloat(document.getElementById('input-qc').value);
             document.getElementById('val-ql').innerText = QL;
@@ -996,36 +770,33 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const P = 300; // W constante
+            const P = 300;
             const Qnet = QL - QC;
             const S = Math.sqrt(P*P + Qnet*Qnet);
             const FP = (P / S).toFixed(2);
 
-            // Triángulo de Potencia
-            const ox = 100, oy = 180;
-            const scale = 0.35;
+            const ox = 80, oy = 180, sc = 0.45;
 
-            // Cateto P (Horizontal)
+            // Cateto P (Azul)
             ctx.strokeStyle = '#00f3ff'; ctx.lineWidth = 3;
-            ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + P * scale, oy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + P * sc, oy); ctx.stroke();
 
-            // Cateto Q (Vertical)
+            // Cateto Q (Rojo)
             ctx.strokeStyle = '#ff0055';
-            ctx.beginPath(); ctx.moveTo(ox + P * scale, oy); ctx.lineTo(ox + P * scale, oy - Qnet * scale); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ox + P * sc, oy); ctx.lineTo(ox + P * sc, oy - Qnet * sc); ctx.stroke();
 
-            // Hipotenusa S
+            // Hipotenusa S (Verde)
             ctx.strokeStyle = '#00ff66';
-            ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + P * scale, oy - Qnet * scale); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(ox + P * sc, oy - Qnet * sc); ctx.stroke();
 
-            // Texto de métricas
-            ctx.fillStyle = '#fff';
-            ctx.font = '14px Orbitron';
-            ctx.fillText(`Potencia Aparente S = ${Math.round(S)} VA`, 320, 60);
-            ctx.fillText(`Factor de Potencia (FP) = ${FP}`, 320, 90);
+            // Métricas
+            ctx.fillStyle = '#fff'; ctx.font = '13px Orbitron';
+            ctx.fillText(`Potencia Aparente S = ${Math.round(S)} VA`, 320, 70);
+            ctx.fillText(`Factor de Potencia (FP) = ${FP}`, 320, 100);
         }
 
-        // 4. SIMULADOR TRANSFORMADOR
-        function updateSimTransfo() {
+        // 4. SIMULADOR: TRANSFORMADOR
+        function drawSimTransfo() {
             const N1 = parseInt(document.getElementById('input-n1').value);
             const N2 = parseInt(document.getElementById('input-n2').value);
             document.getElementById('val-n1').innerText = N1;
@@ -1039,25 +810,24 @@
             const V1 = 120;
             const V2 = (V1 * (N2 / N1)).toFixed(1);
 
-            // Núcleo del Transformador
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(200, 40, 200, 120);
-            ctx.clearRect(240, 70, 120, 60);
+            // Núcleo
+            ctx.fillStyle = '#1e293b'; ctx.fillRect(220, 40, 200, 140);
+            ctx.clearRect(260, 75, 120, 70);
 
-            // Bobinados
+            // Bobinas
             ctx.strokeStyle = '#ffb700'; ctx.lineWidth = 4;
-            ctx.beginPath(); ctx.arc(195, 100, 30, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(215, 110, 32, 0, Math.PI * 2); ctx.stroke();
+            
             ctx.strokeStyle = '#00f3ff';
-            ctx.beginPath(); ctx.arc(405, 100, 30, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath(); ctx.arc(425, 110, 32, 0, Math.PI * 2); ctx.stroke();
 
-            ctx.fillStyle = '#fff';
-            ctx.font = '14px Orbitron';
-            ctx.fillText(`V1 = ${V1} V`, 80, 105);
-            ctx.fillText(`V2 = ${V2} V`, 460, 105);
+            ctx.fillStyle = '#fff'; ctx.font = '14px Orbitron';
+            ctx.fillText(`V1 = ${V1} V`, 90, 115);
+            ctx.fillText(`V2 = ${V2} V`, 480, 115);
         }
 
-        // 5. SIMULADOR TRIFÁSICO
-        function updateSimTrifasico() {
+        // 5. SIMULADOR: SISTEMA TRIFÁSICO
+        function drawSimTrifasico() {
             const Vp = parseFloat(document.getElementById('input-vp').value);
             document.getElementById('val-vp').innerText = Vp;
 
@@ -1066,9 +836,7 @@
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            const cx = 300, cy = 120;
-            const r = Vp * 0.7;
-
+            const cx = 325, cy = 115, r = Vp * 0.65;
             const angles = [0, -120, 120];
             const colors = ['#ff0055', '#00f3ff', '#00ff66'];
 
@@ -1077,25 +845,16 @@
                 const x = cx + r * Math.cos(rad);
                 const y = cy + r * Math.sin(rad);
 
-                ctx.strokeStyle = colors[i];
-                ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.lineTo(x, y);
-                ctx.stroke();
+                ctx.strokeStyle = colors[i]; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(x, y); ctx.stroke();
             });
 
             const VL = (Math.sqrt(3) * Vp).toFixed(1);
-            ctx.fillStyle = '#fff';
-            ctx.font = '14px Orbitron';
-            ctx.fillText(`Tensión de Línea (V_ab) = ${VL} V`, 20, 30);
+            ctx.fillStyle = '#fff'; ctx.font = '13px Orbitron';
+            ctx.fillText(`Tensión entre Líneas (VL) = ${VL} V`, 25, 30);
         }
 
-        // Inicialización al cargar la ventana
-        window.addEventListener('resize', drawConnections);
-        window.onload = () => {
-            updateHUD();
-        };
+        window.onload = () => { updateUI(); };
     </script>
 </body>
 </html>
